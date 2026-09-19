@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.polish_backup
+.polish_scores.json
+node_modules/
+.DS_Store
