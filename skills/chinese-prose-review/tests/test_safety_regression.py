@@ -1,4 +1,6 @@
 """B01/D03 principles from the task; synthetic prose, no novel source files."""
+import errno
+from contextlib import contextmanager
 import hashlib
 import json
 import os
@@ -11,6 +13,34 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 from scan_prose import analyze_content
+
+
+@contextmanager
+def hardlink_test_directory():
+    """Local PRoot cleanup compatibility; never suppress test failures."""
+    temporary = tempfile.TemporaryDirectory(prefix='prose-d03-')
+    directory = temporary.name
+    try:
+        yield directory
+    finally:
+        # At most two retries, and only for link2symlink helper residues.
+        for attempt in range(3):
+            try:
+                temporary.cleanup()
+                break
+            except OSError as exc:
+                if exc.errno != errno.ENOTEMPTY or attempt == 2:
+                    raise
+                base = Path(directory)
+                if base.is_symlink() or not base.is_dir():
+                    raise
+                remaining = list(base.iterdir())
+                if not remaining or not all(
+                    entry.name.startswith('.l2s.')
+                    and (entry.is_symlink() or entry.is_file())
+                    for entry in remaining
+                ):
+                    raise
 
 
 class Regression(unittest.TestCase):
@@ -87,7 +117,7 @@ class Regression(unittest.TestCase):
                 self.assertEqual(candidate.read_bytes(), b'candidate\r\n')
 
     def test_output_aliases_and_existing_files_rejected_d03(self):
-        with tempfile.TemporaryDirectory() as d:
+        with hardlink_test_directory() as d:
             p=Path(d)/'source.md';c=Path(d)/'candidate.md';p.write_bytes(b'original\r\n');c.write_bytes(b'candidate\r\n')
             hard=Path(d)/'hard.md';os.link(p,hard)
             sym=Path(d)/'sym.md';sym.symlink_to(p)
