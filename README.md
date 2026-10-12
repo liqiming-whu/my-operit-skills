@@ -18,6 +18,7 @@
 | Skill | 说明 |
 |-------|------|
 | `byted-ark-seedream-skill` | 豆包 Seedream AI 图片生成（火山引擎方舟）。支持连贯组图、流式输出、提示词优化。需 Node.js 18+ 与方舟 API 访问。 |
+| `chinese-prose-review` | 成稿后的中文小说文风审校。默认只读，修订另存，字节哈希与差异回验；Python 3.9+ 标准库，不设机械禁词分数。 |
 | `rp-prose-polisher` | 中文文章优化器。对工作区正文文件（`正文.md`/`第＊＊章.md`/用户指定文件）做内容自查、去AI味、去八股文三段润色，附 Python 脚本验证与编辑前自动备份。 |
 
 ## 目录结构
@@ -34,7 +35,7 @@ skills/
 
 1. 将目标 skill 目录放入你的 Agent 宿主的 skills 目录（Operit 为 `/sdcard/Download/Operit/skills/`）。
 2. 按上方「移植提示」做必要的路径与工具调用适配（如目标平台非 Operit）。
-3. 重启 / 重新扫描 skills 后，通过 skill 的 `metadata.trigger` 关键词触发。
+3. 重启 / 重新扫描 skills 后，通过 Skill 的 description 或 `metadata.trigger` 关键词触发。
 
 各 skill 的具体用法见其 `SKILL.md`。
 
