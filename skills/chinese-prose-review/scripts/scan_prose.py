@@ -269,7 +269,7 @@ def main() -> int:
     result["sha256"] = original_hash
     body = json.dumps(result, ensure_ascii=False, indent=2) + "\n" if args.format == "json" else render_markdown(result, args.max_show)
     if args.out:
-        outpath = args.out.expanduser().resolve()
+        outpath = args.out.expanduser().absolute()
         try:
             write_new(outpath, body)
         except FileExistsError:

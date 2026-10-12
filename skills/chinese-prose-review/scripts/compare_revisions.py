@@ -81,7 +81,7 @@ def main() -> int:
         ap.error("原稿 SHA-256 与修改前基线不一致；停止回验")
     result = comparison(before, after, str(oldp), str(newp), max(0, args.max_diff_lines), original_hash=old_hash, candidate_hash=new_hash)
     if args.out:
-        path = args.out.expanduser().resolve()
+        path = args.out.expanduser().absolute()
         try:
             write_new(path, result)
         except FileExistsError:

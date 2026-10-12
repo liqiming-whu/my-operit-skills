@@ -62,6 +62,30 @@ class Regression(unittest.TestCase):
             self.assertNotEqual(rejected.returncode,0)
             self.assertIn('基线不一致',rejected.stderr)
 
+    def test_dangling_output_symlinks_rejected(self):
+        for script in ['scan_prose.py', 'compare_revisions.py', 'prepare_candidate.py']:
+            with self.subTest(script=script), tempfile.TemporaryDirectory() as d:
+                base = Path(d)
+                source = base / 'source.md'
+                candidate = base / 'candidate.md'
+                source.write_bytes(b'original\r\n')
+                candidate.write_bytes(b'candidate\r\n')
+                target = base / 'absent.md'
+                link = base / 'output.md'
+                # Relative links resolve relative to the link's parent.
+                link.symlink_to(target.name)
+                inputs = [source] if script != 'compare_revisions.py' else [source, candidate]
+                args = inputs + ([link] if script == 'prepare_candidate.py'
+                                 else ['--out', link])
+                result = self.run_cli(script, *args)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertIn('路径已存在', result.stderr)
+                self.assertTrue(link.is_symlink())
+                self.assertEqual(os.readlink(link), target.name)
+                self.assertFalse(os.path.lexists(target))
+                self.assertEqual(source.read_bytes(), b'original\r\n')
+                self.assertEqual(candidate.read_bytes(), b'candidate\r\n')
+
     def test_output_aliases_and_existing_files_rejected_d03(self):
         with tempfile.TemporaryDirectory() as d:
             p=Path(d)/'source.md';c=Path(d)/'candidate.md';p.write_bytes(b'original\r\n');c.write_bytes(b'candidate\r\n')
